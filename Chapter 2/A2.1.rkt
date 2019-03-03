@@ -86,7 +86,7 @@
 (define (add-interval x y)
   (make-interval (+ (lower-bound x) (lower-bound y))
                  (+ (upper-bound x) (upper-bound y))))
-#;(define (mul-interval x y)
+(define (mul-interval x y)
   (let ((p1 (* (lower-bound x) (lower-bound y)))
         (p2 (* (lower-bound x) (upper-bound y)))
         (p3 (* (upper-bound x) (lower-bound y)))
@@ -169,7 +169,7 @@
 
 
 ;2.11
-(define (mul-interval x y)
+#;(define (mul-interval x y)
   (cond ((and (< (lower-bound x) 0)
              (< (lower-bound y) 0)
              (< (upper-bound x) 0)
@@ -255,17 +255,49 @@
  (make-interval 2 3))
 ;(2, 15)
 
+;2.12
+(define (make-center-percent c p)
+  (make-interval (- c (* c p)) (+ c (* c p))))
+(define (percent x)
+  (/ (width x) (center x) ))
+#;(make-center-percent (center (make-interval 1 5))
+                     (percent (make-interval 1 5)))
+;(1 . 5)
 
 
+;2.13
+#;(define (mul-interval x y)
+  (make-center-percent
+   (* (center x) (center y))
+   (+ (percent x) (percent y))))
+#;(mul-interval (make-interval 1.1 1.2)
+              (make-interval  2.3 2.4))
+;'(2.53 . 2.88)
+;'(2.5274999999999994 . 2.877499999999999)
 
 
+;2.14
+(define (par1 r1 r2)
+  (div-interval (mul-interval r1 r2)
+                (add-interval r1 r2)))
+(define (par2 r1 r2)
+  (let ((one (make-interval 1 1)))
+    (div-interval
+     one
+     (add-interval (div-interval one r1)
+                   (div-interval one r2)))))
+;(par1 (make-interval 2 3) (make-interval 4 5))
+;'(1.0 . 2.5)
+;(par2 (make-interval 2 3) (make-interval 4 5))
+;'(1.3333333333333333 . 1.875)
 
 
-
-
-
-
-
+;(par1 (make-center-width 2.5 0.001) (make-center-width 4.5 0.001))
+;'(1.6056842330762637 . 1.6086026007430696)
+;(par1 (make-center-percent 2.5 0.01) (make-center-percent 4.5 0.01))
+;'(1.5595650636492222 . 1.6560064935064938)
+;(par2 (make-center-width 2.5 0.001) (make-center-width 4.5 0.001))
+;'(1.606602029151186 . 1.6076836618109112)
 
 
 
