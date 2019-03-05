@@ -70,10 +70,56 @@
 ;'(2 4 6)
 
 
+;2.21
+(define square (lambda (x) (* x x)))
+#;(define (square-list items)
+  (if (null? items)
+      items
+      (cons (square (car items))
+            (square-list (cdr items)))))
+#;(define (square-list items)
+  (map square items))
+
+;(square-list (list 1 2 3 4 5))
+;'(1 4 9 16 25)
+
+;2.22
+#;(define (square-list items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons (square (car things))
+                    answer))))
+  (iter items '()))
+
+#;(define (square-list items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things)
+              (cons answer
+                    (square (car things))))))
+  (iter items '()))
+;(square-list (list 1 2 3 4 5))
+;'(25 16 9 4 1)
+;'(((((() . 1) . 4) . 9) . 16) . 25)
 
 
+;2.23
+(define (for-each proc items)
+  (cond ((null? items) '())
+        (else (proc (car items))(for-each proc (cdr items)))))
+(for-each (lambda (x)
+            (newline)
+            (display x))
+          (list 57 321 88))
 
-
+(define (count-leaves x)
+  (cond ((null? x) 0)
+        ((not (pair? x)) 1)
+        (else (+ (count-leaves (car x))
+                 (count-leaves (cdr x))))))
 
 
 
