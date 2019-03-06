@@ -1,4 +1,122 @@
 #lang racket
+(define (add-rat x y)
+  (make-rat (+ (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
+(define (sub-rat x y)
+  (make-rat (- (* (numer x) (denom y))
+               (* (numer y) (denom x)))
+            (* (denom x) (denom y))))
+(define (mul-rat x y)
+  (make-rat (* (numer x) (numer y))
+            (* (denom x) (denom y))))
+(define (div-rat x y)
+  (make-rat (* (numer x) (denom y))
+            (* (denom x) (numer y))))
+(define (equal-rat? x y)
+  (= (* (numer x) (denom y))
+     (* (numer y) (denom x))))
+
+;(define (make-rat n d) (cons n d))
+(define (numer x) (car x))
+(define (denom x) (cdr x))
+
+(define (print-rat x)
+  (newline)
+  (display (numer x))
+  (display "/")
+  (display (denom x)))
+#;(define (make-rat n d)
+  (let ((g (gcd n d)))
+    (cons (/ n g) (/ d g))))
+
+;2.1
+(define (make-rat n d)
+  (let ((g (gcd n d)))
+    (cond ((negative? d) (cons (- (/ n g)) (- (/ d g))))
+          (else (cons (/ n g) (/ d g))))))
+
+;(print-rat (add-rat (make-rat 1 2) (make-rat 1 3)))
+;(print-rat (add-rat (make-rat -1 2) (make-rat 1 3)))
+;(newline)
+;(numer (make-rat 1 -2))
+
+;2.2
+(define (print-point p)
+  (newline)
+  (display "(")
+  (display (x-point p))
+  (display ",")
+  (display (y-point p))
+  (display ")")
+  )
+
+(define (make-point x y)
+  (cons x y))
+(define (x-point p)
+  (car p))
+(define (y-point p)
+  (cdr p))
+
+(define (make-segment p1 p2)
+  (cons p1 p2))
+(define (start-segment s) (car s))
+(define (end-segment s) (cdr s))
+(define (midpoint-segment s)
+  (define average (lambda (a b) (/ (+ a b) 2)))
+  (make-point (average (x-point (start-segment s))
+                       (x-point (end-segment s)))
+              (average (y-point (start-segment s))
+                       (y-point (end-segment s)))))
+
+;(define p1 (make-point 1 2))
+;(define p2 (make-point 3 4))
+;(define s (make-segment p1 p2))
+;(print-point (midpoint-segment s))
+;(2, 3)
+
+;2.3
+(define (square x) (* x x))
+(define (distance p1 p2)
+  (sqrt (+ (square (- (x-point p1) (x-point p2)))
+           (square (- (y-point p1) (y-point p2))))))
+
+
+#;(define (make-rectangle p1 p2 p3 p4)
+  (cons (cons p1 p2) (cons p3 p4)))
+#;(define (width-rectangle rect)
+  (distance (car (car rect)) (cdr (car rect))))
+#;(define (height-rectangle rect)
+  (distance (car (car rect)) (car (cdr rect))))
+
+(define (make-rectangle p1 p2 p3 p4)
+  (cons (make-segment p1 p2)
+        (make-segment p1 p3)))
+(define (width-rectangle rect)
+  (let ((width-s (car rect)))
+    (distance (start-segment width-s)
+              (end-segment width-s))))
+(define (height-rectangle rect)
+  (let ((height-s (cdr rect)))
+    (distance (start-segment height-s)
+              (end-segment height-s))))
+
+(define (area rect)
+  (* (width-rectangle rect) (height-rectangle rect)))
+(define (perimeter rect)
+  (* (+ (width-rectangle rect) (height-rectangle rect)) 2))
+
+;(define p1 (make-point 1 2))
+;(define p2 (make-point 4 2))
+;(define p3 (make-point 1 5))
+;(define p4 (make-point 4 5))
+
+;(define rect1 (make-rectangle p1 p2 p3 p4))
+;(area rect1)
+;9
+;(perimeter rect1)
+;12
+
 ;2.4
 #;(define (cons x y)
   (lambda (m) (m x y)))
