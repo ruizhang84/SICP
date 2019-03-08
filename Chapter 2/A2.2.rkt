@@ -10,11 +10,17 @@
 ;(34)
 
 ;2.18
-(define (append ls a)
+#;(define (append-item ls a)
   (if (null? ls)
       (cons a ls)
-      (cons (car ls) (append (cdr ls) a))))
-;(append '(1 2 3) '4)
+      (cons (car ls) (append-item (cdr ls) a))))
+#;(define (append l1 l2)
+  (if (null? l2)
+      l1
+      (append (append-item l1 (car l2))
+              (cdr l2))))
+;(append '(1 2 3) '(4 5))
+;'(1 2 3 4 5)
 (define (reverse ls)
   (if (null? ls)
       ls
@@ -110,7 +116,7 @@
 (define (for-each proc items)
   (cond ((null? items) '())
         (else (proc (car items))(for-each proc (cdr items)))))
-(for-each (lambda (x)
+#;(for-each (lambda (x)
             (newline)
             (display x))
           (list 57 321 88))
@@ -121,9 +127,178 @@
         (else (+ (count-leaves (car x))
                  (count-leaves (cdr x))))))
 
+;2.24
+;(list 1 (list 2 (list 3 4)))
+;'(1 (2 (3 4)))
+
+;2.25
+;(define a '(1 3 (5 7) 9))
+;(define b '((7)))
+;(define c '(1 (2 (3 (4 (5 (6 7)))))))
+;(car (cdr (car (cdr (cdr a)))))
+;(car (car b))
+;(car (cdr (car (cdr (car (cdr (car (cdr (car (cdr (car (cdr c))))))))))))
+
+
+;2.26
+;(define x (list 1 2 3))
+;(define y (list 4 5 6))
+;(append x y)
+;'(1 2 3 (4 5 6))
+;(cons x y)
+;'((1 2 3) 4 5 6)
+;(list x y)
+;'((1 2 3) (4 5 6))
+
+;2.27
+;(define x (list (list 1 2) (list 3 4)))
+(define (deep-reverse x)
+  (if (not (pair? x))
+      x
+      (let ((new-x (reverse x)))
+        (cons (deep-reverse (car new-x))
+              (deep-reverse (cdr new-x))))))
+;(deep-reverse x)
+;'((4 3) (2 1))
+
+;2.28
+;(define x (list (list 1 2) (list 3 4)))
+(define (fringe x)
+  (define (append-to l1 l2)
+    (if (null? l2)
+        l1
+        (append-to (append l1 (car l2)) (cdr l2))))
+  (cond ((not (pair? x)) x)
+        ((not (pair? (car x))) (cons (car x) (fringe (cdr x))))
+        (else (append-to (fringe (car x))
+                   (fringe (cdr x))))))
+;(fringe x)
+
+;2.29
+#;(define (make-mobile left right)
+  (list left right))
+#;(define (make-branch length structure)
+  (list length structure))
+;a
+(define branch-length
+  (lambda (branch)
+    (car branch)))
+#;(define branch-structure
+  (lambda (branch)
+    (car (cdr branch))))
+
+(define left-branch
+  (lambda (mobile)
+    (car mobile)))
+#;(define right-branch
+  (lambda (mobile)
+    (car (cdr mobile))))
+;(define a (make-branch 1 2))
+;(define b (make-branch 2 3))
+;(define c (make-mobile a b))
+;(define d (make-mobile a c))
+;(define e (make-mobile c d))
+;(left-branch a)
+;1
+;(left-branch e)
+;'((1 2) (2 3))
+;(right-branch d)
+;'((1 2) (2 3))
+;(branch-length a)
+;1
+;(branch-structure a)
+;2
+;b
+(define total-weight
+  (lambda (mobile)
+    (cond ((number? (right-branch mobile)) (branch-structure mobile))
+          ((number? (left-branch mobile)) (total-weight (right-branch mobile)))
+          (else (+ (total-weight (left-branch mobile))
+                   (total-weight (right-branch mobile)))))))
+;(total-weight e)
+;12
+(define torque
+  (lambda (mobile)
+    (cond((number? (left-branch mobile))
+          (* (branch-length mobile) (total-weight mobile)))
+         (else (+ (torque (left-branch mobile))
+                  (torque (right-branch mobile))))
+         )))
+(define balanced
+  (lambda (mobile)
+    (if (number? (left-branch mobile))
+        #f
+        (= (torque (right-branch mobile))
+           (torque (left-branch mobile))))))
+;(balanced e)
+;d
+(define (make-mobile left right)
+  (cons left right))
+(define (make-branch length structure)
+  (cons length structure))
+(define right-branch
+  (lambda (mobile)
+    (cdr mobile)))
+(define branch-structure
+  (lambda (branch)
+    (cdr branch)))
+;(define a (make-branch 1 2))
+;(define b (make-branch 2 3))
+;(define c (make-mobile a b))
+;(define d (make-mobile a c))
+;(define e (make-mobile c d))
+;(left-branch a)
+;1
+;(left-branch e)
+;'((1 2) (2 3))
+;(right-branch d)
+;'((1 2) (2 3))
+;(branch-length a)
+;1
+;(branch-structure a)
+;2
+
+;2.30
+#;(define (square-tree tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (square-tree sub-tree)
+             (* sub-tree sub-tree)))
+       tree))
+#;(square-tree
+ (list 1
+       (list 2 (list 3 4) 5)
+       (list 6 7)))
+;'(1 (4 (9 16) 25) (36 49))
+
+;2.31
+(define (tree-map fuc tree)
+  (map (lambda (sub-tree)
+         (if (pair? sub-tree)
+             (tree-map fuc sub-tree)
+             (fuc sub-tree)))
+       tree))
+(define (square-tree tree) (tree-map (lambda (x) (* x x)) tree))
+#;(square-tree
+ (list 1
+       (list 2 (list 3 4) 5)
+       (list 6 7)))
+
+;2.32
+(define (subsets s)
+  (if (null? s)
+      (list '())
+      (let ((rest (subsets (cdr s))))
+        (append rest (map (lambda (x) (cons (car s) x))
+                          rest)))))
+
+;(subsets '(1 2 3))
+;'(() (3) (2) (2 3) (1) (1 3) (1 2) (1 2 3))
 
 
 
 
 
 
+
+   
