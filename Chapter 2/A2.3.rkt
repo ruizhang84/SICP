@@ -1,5 +1,48 @@
 #lang racket
 
+;2.53
+(define (memq item x)
+  (cond ((null? x) false)
+        ((eq? item (car x)) x)
+        (else (memq item (cdr x)))))
+;(list 'a 'b 'c)
+;'(a b c)
+;(list (list 'george))
+;'((george))
+;(cdr '((x1 x2) (y1 y2)))
+;'((y1 y2))
+;(cadr '((x1 x2) (y1 y2)))
+;'(y1 y2)
+;(pair? (car '(a short list)))
+;#f
+;(memq 'red '((red shoes) (blue socks)))
+;#f
+;(memq 'red '(red shoes blue socks))
+;'(red shoes blue socks)
+
+;2.54
+(define equal?
+  (lambda (a b)
+    (cond ((and (pair? a) (pair? b)) (and (eq? (car a) (car b))
+                                          (equal? (cdr a) (cdr b))))
+          ((and (null? a) (null? b)) #t)
+          (else #f))))
+#;(equal? '(this is a list) '(this is a list))
+;#t
+#;(equal? '(this is a list) '(this (is a) list))
+;#f
+
+;2.55
+;(car ''abracadabra)
+;(list 'quote 'abracadabra)
+;''abracadabra
+
+
+
+
+
+
+
 
 (define (make-leaf symbol weight) (list 'leaf symbol weight))
 (define (leaf? object) (eq? (car object) 'leaf))
