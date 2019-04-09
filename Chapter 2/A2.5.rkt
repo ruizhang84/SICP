@@ -33,7 +33,7 @@
       (error "Bad tagged datum: CONTENTS" datum)))
 
 ;(define (apply-generic op arg) (arg op))
-(define (apply-generic op . args)
+#;(define (apply-generic op . args)
   (let ((type-tags (map type-tag args)))
     (let ((proc (get op type-tags)))
       (if proc
@@ -49,6 +49,10 @@
 (define (zero? x) (apply-generic 'zero? x))
 ;ordinary numbers
 (define (install-scheme-number-package)
+  ;; following added to Scheme-number package
+  (put 'exp '(scheme-number scheme-number)
+       (lambda (x y) (tag (expt x y))))
+  ; using primitive expt
   (define (tag x) (attach-tag 'scheme-number x))
   (put 'add '(scheme-number scheme-number)
        (lambda (x y) (tag (+ x y))))
@@ -181,6 +185,12 @@
   (define (div-complex z1 z2)
     (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
                        (- (angle z1) (angle z2))))
+  
+  ;; to be included in the complex package
+  #;(define (add-complex-to-schemenum z x)
+    (make-from-real-imag (+ (real-part z) x) (imag-part z)))
+  #;(put 'add '(complex scheme-number)
+       (lambda (z x) (tag (add-complex-to-schemenum z x))))
   ;; interface to rest of the system
   (define (tag z) (attach-tag 'complex z))
   (put 'real-part '(complex) real-part)
@@ -242,3 +252,88 @@
 ;2.80
 ;(install-scheme-number-package)
 ;(zero? 1)
+
+
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+
+
+
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+                  (cond (t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else (error "No method for these types"
+                                     (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+;2.81
+(define global-coercion-array '())
+
+(define (put-coercion op type item)
+  (define (put-helper k array)
+    (cond ((null? array) (list(make-entry k item)))
+          ((equal? (key (car array)) k) array)
+          (else (cons (car array) (put-helper k (cdr array))))))
+  (set! global-coercion-array (put-helper (list op type) global-array)))
+
+(define (get-coercion op type)
+  (define (get-helper k array)
+    (cond ((null? array) #f)
+          ((equal? (key (car array)) k) (value (car array)))
+          (else (get-helper k (cdr array)))))
+  (get-helper (list op type) global-coercion-array))
+
+(put-coercion 'scheme-number
+              'complex
+              scheme-number->complex)
+
+(define (scheme-number->scheme-number n) n)
+(define (complex->complex z) z)
+(put-coercion 'scheme-number
+              'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+
+(install-rational-package)
+(install-rectangular-package)
+(install-scheme-number-package)
+(install-complex-package)
+
+;(make-complex-from-real-imag 3 4)
+;'(complex rectangular 3 . 4)
+(define z (make-complex-from-real-imag 2 0))
+;(magnitudes '(rectangular 2 . 0))
+
+; using primitive expt
+(define (exp x y) (apply-generic 'exp x y))
+;(exp 2 2)
+;4
+(exp z z)
+;...
+
+
+
+
+
+
+
+
+
+
+
+
+
